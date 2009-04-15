@@ -1,0 +1,17 @@
+History.txt
+LICENSE
+Manifest.txt
+PostInstall.txt
+README.rdoc
+Rakefile
+lib/path-to.rb
+lib/path-to/application.rb
+lib/path-to/path.rb
+lib/path-to/with_params.rb
+script/console
+script/destroy
+script/generate
+test/path-to/test_application.rb
+test/path-to/test_path.rb
+test/path-to/test_with_params.rb
+test/test_helper.rb

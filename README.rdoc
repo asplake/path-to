@@ -1,0 +1,52 @@
+= path-to README
+
+== Description
+
+path-to allows web applications to be modelled via URI templates and then accessed through an application-specific Ruby API.  It is
+designed to be extended easily to support discovery mechanisms; support for XRD may be added at some future date.
+
+== Synopsis
+
+Here's a simple example that illustrates access to a CMS: 
+
+   require "path-to"
+
+   class Users    < PathTo::Path ; end
+   class Articles < PathTo::Path ; end
+
+   app = Application.new(
+       :users    => "http://example.com/users/{user}",
+       :articles => "http://example.com/users/{user}/articles/{slug}") do |app|
+     def app.child_class_for(instance, method, params)
+       {
+         :users    => Users,
+         :articles => Articles
+       }[method]
+     end
+   end                                                         #=> Application
+
+Note that the Users and Articles classes and the overridden #child_class_for method above can be done away with (reducing the above
+code to just four lines) if there is no need to define any class-specific behaviour.
+
+Having defined URI template and class mappings for keys :users and :articles mapping to URI templates, calls to app.users and
+app.articles cause objects of the appropriate class to be generated.  These in turn support chaining and the collection of request
+params, like this:
+
+   app.users                                                   #=> http://example.com/users/ <Users>
+   app.users(:user => "dojo")                                  #=> http://example.com/users/dojo <Users>
+   app.users[:user => "dojo"]                                  #=> http://example.com/users/dojo <Users>
+   app.articles(:user => "dojo", :slug => "my-article")        #=> http://example.com/users/dojo/articles/my-article <Articles>
+   app.users[:user => "dojo"].articles[:slug => "my-article"]  #=> http://example.com/users/dojo/articles/my-article <Articles>
+
+With a little more work (overriding Users#[] and Articles#[] - as described in the documentation for the Path class), the last example
+becomes simply:
+
+  app.users["dojo"].articles["my-article"]                     #=> http://example.com/users/dojo/articles/my-article <Articles>
+
+HTTP support comes courtesy of HTTParty (the Path class includes it).  To GET an article in the above example, just invoke the get method on the path object:
+
+  app.users["dojo"].articles["my-article"].get                 #=> "<html>...</html>"
+
+== Installation, Dependencies, Testing
+
+TODO
