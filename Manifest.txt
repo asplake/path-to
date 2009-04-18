@@ -6,6 +6,7 @@ README.rdoc
 Rakefile
 lib/path-to.rb
 lib/path-to/application.rb
+lib/path-to/http_client.rb
 lib/path-to/path.rb
 lib/path-to/with_params.rb
 script/console
