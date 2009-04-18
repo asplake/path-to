@@ -1,3 +1,8 @@
+== 0.0.3 2009-04-18
+
+* Minor enhancement:
+  * Update README with installation and contact info
+
 == 0.0.2 2009-04-18
 
 * Minor bugfix:
