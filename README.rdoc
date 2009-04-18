@@ -47,6 +47,10 @@ HTTP support comes courtesy of HTTParty (the Path class includes it).  To GET an
 
   app.users["dojo"].articles["my-article"].get                 #=> "<html>...</html>"
 
-== Installation, Dependencies, Testing
+== Installation
 
-TODO
+  sudo gem install path-to
+
+== Author
+
+Mike Burrows (asplake), email mailto:mjb@asplake.co.uk, website positiveincline.com[http://positiveincline.com] (articles tagged path-to[http://positiveincline.com/?tag=path-to])
