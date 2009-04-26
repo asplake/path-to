@@ -2,8 +2,7 @@
 
 == Description
 
-path-to allows web applications to be modelled via URI templates and then accessed through an application-specific Ruby API.  It is
-designed to be extended easily to support discovery mechanisms; support for XRD may be added at some future date.
+path-to allows web applications to be modelled via URI templates and then accessed through an application-specific Ruby API.  It is designed to be extended easily to support discovery mechanisms; support for XRD may be added at some future date.
 
 == Synopsis
 
