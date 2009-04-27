@@ -6,13 +6,16 @@ README.rdoc
 Rakefile
 lib/path-to.rb
 lib/path-to/application.rb
+lib/path-to/described_routes.rb
 lib/path-to/http_client.rb
 lib/path-to/path.rb
 lib/path-to/with_params.rb
 script/console
 script/destroy
 script/generate
+test/path-to/fixtures/described_routes_test.json
 test/path-to/test_application.rb
+test/path-to/test_described_routes.rb
 test/path-to/test_path.rb
 test/path-to/test_with_params.rb
 test/test_helper.rb
