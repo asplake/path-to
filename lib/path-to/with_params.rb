@@ -34,11 +34,11 @@ module PathTo
     # [service]     Value for the new instance's service attribute, inherited from self (the parent) if none supplied
     # [params]      The new instance's params, will be merged with self's (the parent's) params
     #
-    def child(child_class = nil, service = nil, params = {})
+    def child(child_class = nil, service = nil, params = {}, *other_args)
       child_class ||= child_class_for(instance, service, params)
       service ||= self.service
       params = self.params.merge(params)
-      child_class.new(self, service, params)
+      child_class.new(self, service, params, *other_args)
     end
 
     #

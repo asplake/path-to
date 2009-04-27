@@ -3,6 +3,42 @@ require "described_routes"
 
 module PathTo
   module DescribedRoutes
+    class TemplatedPath < WithParams
+      attr_reader :resource_template
+      
+      def initialize(parent, service, params, resource_template)
+        super(parent, service, params)
+        @resource_template = resource_template
+        
+        missing_params = resource_template.params - params.keys
+        unless missing_params.empty?
+          raise ArgumentError.new(
+                  "Missing params #{missing_params.join(', ')} " + 
+                  "(template #{resource_template.name.inspect}," +
+                  " path_template #{resource_template.path_template.inspect}," +
+                  " params #{params.inspect})")
+          end
+      end
+      
+      def uri_template
+        @uri_template ||= application.base + resource_template.path_template
+      end
+      
+      def uri
+        @uri ||= begin
+          string_keyed_params = params.keys.inject({}){|hash, key| hash[key.to_s] = params[key]; hash}
+          Addressable::URI.expand_template(uri_template, string_keyed_params).to_s
+        end
+      end
+      
+      #
+      # Finds (once) the application in the parent hierarchy.
+      #
+      def application
+        @application ||= parent.application if parent
+      end
+    end
+    
     class Application < WithParams
       # An Array of DescribedRoutes::Resource objects
       attr_reader :resources
@@ -15,11 +51,29 @@ module PathTo
       
       attr_reader :base
       
-      def initialize(resources, base, default_type = Path, http_client = HTTPClient)
+      def initialize(resources, base, params = {}, default_type = TemplatedPath, http_client = HTTPClient)
         @base, @resources, @default_type, @http_client = base, resources, default_type, http_client
-        super(nil, nil, {})
+        super(nil, nil, params)
       end
       
+      #
+      # Tries to respond to a missing method.  We can do so if
+      #
+      # 1. we have a resource template matching the method name
+      # 2. #child_class_for returns a class or other factory object capable of creating a new child instance
+      #
+      # Otherwise we invoke super in the hope of avoiding any hard-to-debug behaviour!
+      #
+      def method_missing(method, *args)
+        resource_template = resource_templates_by_name[method.to_s]
+        if resource_template && (child_class = child_class_for(self, method, params, resource_template))
+          params = args.inject(Hash.new){|h, arg| h.merge(arg)}
+          child(child_class, method, params, resource_template)
+        else
+          super
+        end
+      end
+
       #
       # Determines whether this application &/or its child objects should respond to the given method, and if so returns a class from
       # which a new child instance (typically Path or a subclass thereof) will be created.  This implementation (easily overridden)
@@ -31,53 +85,23 @@ module PathTo
       # [method]   The method invoked on the instance that has (presumably) been intercepted by instance#method_missing
       # [params]   The instance's params
       # 
-      def child_class_for(instance, method, params)
-        default_type if uri_template_for(method, params)
+      def child_class_for(instance, method, params, template)
+        default_type
+      end
+      
+      #
+      # Returns a hash of all ResourceTemplates (the tree flattened) keyed by name
+      #
+      def resource_templates_by_name
+        @resource_templates_by_name ||= ::DescribedRoutes.all_by_name(resources)
       end
 
       #
-      # Returns self.  See Path#application.
+      # Returns self.  See TemplatedPath#application.
       #
       def application
         self
       end
-
-      #
-      # Returns a URI template for the given method and params.  Parameters:
-      #
-      # [method]   The method invoked on the instance that has (presumably) been intercepted by instance#method_missing
-      # [params]   The instance's params
-      #
-      # This implementation returns a value from the #templates Hash, keyed by method (params is ignored).
-      #
-      #--
-      # TODO Consider taking an instance as the first parameter, as #child_class_for does
-      #
-      def uri_template_for(method, params = {})
-        resource = resources_by_name[method.to_s]
-        if resource
-          base + resource.path_template
-        end
-      end
-      
-      def resources_by_name
-        @resources_by_name ||= ::DescribedRoutes.all_by_name(resources)
-      end
-
-      #
-      # Generates a URI, looking up a URI template (via #uri_template_for) and getting it formatted with the params.
-      #
-      #--
-      # TODO Consider taking an instance as the first parameter, as #child_class_for does
-      #
-      def uri_for(method, params = {})
-        # TODO it's a 1-line fix to Addressable to permit symbols (etc) as keys
-        if (t = uri_template_for(method, params))
-          string_keyed_params = params.keys.inject({}){|hash, key| hash[key.to_s] = params[key]; hash}
-          Addressable::URI.expand_template(t, string_keyed_params).to_s
-        end
-      end
-
     end
   end
 end

@@ -33,7 +33,7 @@ module PathTo
     # Generate a URI for this object, using application.uri_for (see Application#uri_for for details).
     #
     def uri_template
-      application.uri_template_for(service, params)
+      application.uri_template_for(self, service, params)
     end
 
     #
