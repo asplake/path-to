@@ -1,8 +1,3 @@
-# TODO fix these
-$:.push('/Users/asplake/ruby/path-to/lib')
-$:.push('/Users/asplake/ruby/described_routes/lib')
-$:.push('/Users/asplake/ruby/addressable/lib')
-
 require 'rubygems'
 require 'test/unit'
 require 'path-to/described_routes'
