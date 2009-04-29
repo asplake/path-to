@@ -1,3 +1,13 @@
+== 0.2.0 2009-04-18
+
+* Major enhancement
+  * Support for nested described_routes, friendlier initialisation
+
+== 0.1.0 2009-04-18
+
+* Major enhancement
+  * Support for described_routes
+
 == 0.0.3 2009-04-18
 
 * Minor enhancement:

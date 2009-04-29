@@ -9,12 +9,12 @@ module PathTo
   class WithParams
     # Parent object, presumably of type WithParams or descendant
     attr_reader :parent
-    
-    # Service identifier, typically a method symbol intercepted in #method_missing
-    attr_reader :service
-    
+        
     # Parameter hash
     attr_reader :params
+
+    # Service identifier, typically a method symbol intercepted in #method_missing by parent
+    attr_reader :service
 
     #
     # Initialize a new WithParams object. Parameters:

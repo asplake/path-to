@@ -7,9 +7,8 @@ module PathTo
   # discovery process).
   #
   class Path < WithParams
-
     #
-    # Finds (once) the application in the parent hierarchy.
+    # Finds (and remembers) the application in the parent hierarchy.
     #
     def application
       @application ||= parent.application if parent
@@ -20,6 +19,13 @@ module PathTo
     #
     def child_class_for(instance, service, args)
       application.child_class_for(instance, service, args)
+    end
+    
+    #
+    # Returns the http_client of the application; override if necessary.  See also HTTPClient.
+    #
+    def http_client
+      @http_client ||= application.http_client
     end
     
     #
@@ -35,14 +41,6 @@ module PathTo
     def uri_template
       application.uri_template_for(self, service, params)
     end
-
-    #
-    # Returns the http_client of the application; override if necessary.  See also HTTPClient.
-    #
-    def http_client
-      @http_client ||= application.http_client
-    end
-    
     #
     # GET request on this object's URI
     #

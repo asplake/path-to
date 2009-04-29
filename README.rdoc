@@ -6,7 +6,18 @@ path-to allows web applications to be modelled via URI templates and then access
 
 == Synopsis
 
-Here's a simple example that illustrates access to a CMS: 
+=== Automatic configuration with described_routes
+
+Create a client application configured from a server that supports described_routes:
+
+  require 'path-to/described_routes'
+
+  app = PathTo::DescribedRoutes::Application.new(:json => Net::HTTP.get(URI.parse("http://example.com/described_routes.json")))
+
+  app.users["user_id" => "dojo"].articles.recent      #=> http://example.com/users/dojo/articles/recent
+  app.users["user_id" => "dojo"].articles.recent.get  #=> "<html>...</html>"
+  
+=== Local configuration
 
    require "path-to"
 

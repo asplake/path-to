@@ -17,6 +17,12 @@ module PathTo
       @users = @app.users
     end
     
+    def test_service
+      assert_equal(:users, app.users.service)
+      assert_equal(:articles, app.articles.service)
+      assert_equal(:articles, app.users.articles.service)
+    end
+    
     def test_application
       assert_equal(app, users.application)
       assert_equal(app, users.articles.application)

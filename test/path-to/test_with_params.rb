@@ -20,14 +20,6 @@ module PathTo
       @s1 = WithParamsSubclass1.new
     end
     
-    def test_service
-      assert_nil(WithParams.new.service)
-      assert_equal(:root, root.service)
-      assert_equal(:root, root.child.service)
-      assert_equal(:child, root.child(nil, :child).service)
-      assert_equal(:child, root.child(nil, :child).child.service)
-    end
-    
     def test_params
       assert_equal({}, WithParams.new.params)
       assert_equal({:x => 1}, root.params)
@@ -43,8 +35,7 @@ module PathTo
       assert_kind_of(WithParamsSubclass2, s1.child.child)
     end
     
-    def test_ary_params
-      assert_equal(:root, root[].service)
+    def test_indexed_params
       assert_equal({:x => 1}, root[].params)
       assert_equal({:x => 2}, root[:x => 2].params)
       assert_equal({:x => 1, :y => 2}, root[:y => 2].params)
@@ -52,7 +43,6 @@ module PathTo
     
     def test_method_missing
       assert_kind_of(WithParams, root.flooby)
-      assert_equal(:flooby, root.flooby.service)
       assert_equal({:x => 1}, root.flooby.params)
       assert_equal({:x => 1, :y => 2}, root.flooby[:y => 2].params)
     end

@@ -1,13 +1,13 @@
 require "path-to"
-require "described_routes"
+require "described_routes/resource_template"
 
 module PathTo
   module DescribedRoutes
-    class TemplatedPath < WithParams
+    class TemplatedPath < PathTo::Path
       attr_reader :resource_template
       
       def initialize(parent, service, params, resource_template)
-        super(parent, service, params)
+        super(parent, resource_template.name, params)
         @resource_template = resource_template
         
         missing_params = resource_template.params - params.keys
@@ -21,7 +21,7 @@ module PathTo
       end
       
       def uri_template
-        @uri_template ||= application.base + resource_template.path_template
+        @uri_template ||= resource_template.uri_template || (application.base + resource_template.path_template)
       end
       
       def uri
@@ -37,11 +37,47 @@ module PathTo
       def application
         @application ||= parent.application if parent
       end
+      
+      # Delegated to the application
+      def child_class_for(instance, method, params, template)
+        application.child_class_for(instance, method, params, template)
+      end
+      
+      #
+      # Creates a child instance with new params, potentially finding a nested resource template that takes the additional params
+      #
+      def [](params = {})
+        keys = self.params.merge(params).keys
+        child_resource_template = resource_template.resource_templates.detect{ |t|
+          t.rel.nil? && (t.params - keys).empty?
+        } || resource_template
+        child_class = child_class_for(self, nil, params, child_resource_template)
+        child(child_class, nil, params, child_resource_template)
+      end      
+      
+      #
+      # Tries to respond to a missing method.  We can do so if
+      #
+      # 1. we can find a resource template with rel matching the method name (direct children only)
+      # 2. #child_class_for returns a class or other factory object capable of creating a new child instance
+      #
+      # Otherwise we invoke super in the hope of avoiding any hard-to-debug behaviour!
+      #
+      def method_missing(method, *args)
+        child_resource_template = resource_template.resource_templates.detect{|t| t.rel == method.to_s}
+        if resource_template && (child_class = child_class_for(self, method, params, child_resource_template))
+          params = args.inject(Hash.new){|h, arg| h.merge(arg)}
+          child(child_class, method, params, child_resource_template)
+        else
+          super
+        end
+      end
+      
     end
     
     class Application < WithParams
       # An Array of DescribedRoutes::Resource objects
-      attr_reader :resources
+      attr_reader :resource_templates
 
       # A Class (or at least something with a #new method) from which child objects will be created
       attr_reader :default_type
@@ -49,10 +85,27 @@ module PathTo
       # An HTTParty or similar
       attr_reader :http_client
       
+      # Base URI of the application
       attr_reader :base
       
-      def initialize(resources, base, params = {}, default_type = TemplatedPath, http_client = HTTPClient)
-        @base, @resources, @default_type, @http_client = base, resources, default_type, http_client
+      def initialize(options)
+        @base = options[:base]
+        @base.sub(/\/$/, '') if base
+        @params = options[:params] || {}
+        @default_type = options[:default_type] || TemplatedPath
+        @http_client = options[:http_client] || HTTPClient
+        
+        @resource_templates = options[:resource_templates]
+        unless @resource_templates
+          if (json = options[:json])
+            @resource_templates = ::DescribedRoutes::ResourceTemplate.parse_json(json)
+          elsif (yaml = options[:yaml])
+            @resource_templates = ::DescribedRoutes::ResourceTemplate.parse_yaml(yaml)
+          elsif (xml = options[:xml])
+            @resource_templates = ::DescribedRoutes::ResourceTemplate.parse_xml(xml)
+          end
+        end
+        
         super(nil, nil, params)
       end
       
@@ -93,7 +146,7 @@ module PathTo
       # Returns a hash of all ResourceTemplates (the tree flattened) keyed by name
       #
       def resource_templates_by_name
-        @resource_templates_by_name ||= ::DescribedRoutes.all_by_name(resources)
+        @resource_templates_by_name ||= ::DescribedRoutes::ResourceTemplate.all_by_name(resource_templates)
       end
 
       #
