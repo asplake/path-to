@@ -24,7 +24,7 @@ module PathTo
     # [params]  Value for the params attribute
     #
     def initialize(parent = nil, service = nil, params = {})
-      @parent, @service, @params = parent, service, params
+      @parent, @service, @params = parent, service, params || {}
     end
 
     #
@@ -37,7 +37,7 @@ module PathTo
     def child(child_class = nil, service = nil, params = {}, *other_args)
       child_class ||= child_class_for(instance, service, params)
       service ||= self.service
-      params = self.params.merge(params)
+      params = self.params.merge(params || {})
       child_class.new(self, service, params, *other_args)
     end
 

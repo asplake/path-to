@@ -1,6 +1,6 @@
 require "path-to/path"
 require "path-to/http_client"
-require "addressable/uri"
+require "addressable/template"
 
 module PathTo
   #
@@ -114,7 +114,7 @@ module PathTo
       # TODO it's a 1-line fix to Addressable to permit symbols (etc) as keys
       if (t = uri_template_for(method, params))
         string_keyed_params = params.keys.inject({}){|hash, key| hash[key.to_s] = params[key]; hash}
-        Addressable::URI.expand_template(t, string_keyed_params).to_s
+        Addressable::Template.new(t).expand(string_keyed_params).to_s
       end
     end
   end

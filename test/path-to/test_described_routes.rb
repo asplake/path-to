@@ -91,4 +91,32 @@ class TestDescribedRoutes < Test::Unit::TestCase
       app.users.users
     end
   end
+  
+  def test_uri_template_expansion
+    assert_equal(
+        "http://localhost:3000/users/dojo/articles/recent",
+        app.users["user_id" => "dojo"].articles.recent.uri)
+    assert_equal(
+        "http://localhost:3000/users/dojo/articles/recent.json",
+        app.users["user_id" => "dojo", "format" => "json"].articles.recent.uri)
+  end
+
+  def test_path_optional_params
+    users_json = app.users["format" => "json"]
+    user_json = app.users["user_id" => "dojo"]["format" => "json"]
+    
+    assert_equal("users", users_json.service)
+    assert_equal("user", user_json.service)
+    assert_equal("http://localhost:3000/users.json", users_json.uri)
+    assert_equal("http://localhost:3000/users/dojo.json", user_json.uri)
+  end
+
+  def test_app_params
+    app_json = app["format" => "json"]
+    users_json = app_json.users
+    
+    assert_kind_of(PathTo::DescribedRoutes::Application, app_json)
+    assert_equal(app, app_json.parent)
+    assert_equal("http://localhost:3000/users.json", users_json.uri)
+  end
 end

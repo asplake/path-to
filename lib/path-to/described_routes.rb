@@ -26,8 +26,7 @@ module PathTo
       
       def uri
         @uri ||= begin
-          string_keyed_params = params.keys.inject({}){|hash, key| hash[key.to_s] = params[key]; hash}
-          Addressable::URI.expand_template(uri_template, string_keyed_params).to_s
+          Addressable::Template.new(uri_template).expand(params).to_s
         end
       end
       
@@ -65,7 +64,7 @@ module PathTo
       #
       def method_missing(method, *args)
         child_resource_template = resource_template.resource_templates.detect{|t| t.rel == method.to_s}
-        if resource_template && (child_class = child_class_for(self, method, params, child_resource_template))
+        if child_resource_template && (child_class = child_class_for(self, method, params, child_resource_template))
           params = args.inject(Hash.new){|h, arg| h.merge(arg)}
           child(child_class, method, params, child_resource_template)
         else
@@ -89,9 +88,10 @@ module PathTo
       attr_reader :base
       
       def initialize(options)
+        super(options[:parent], options[:service], options[:params])
+
         @base = options[:base]
         @base.sub(/\/$/, '') if base
-        @params = options[:params] || {}
         @default_type = options[:default_type] || TemplatedPath
         @http_client = options[:http_client] || HTTPClient
         
@@ -106,8 +106,20 @@ module PathTo
           end
         end
         
-        super(nil, nil, params)
+        if parent
+          @base ||= parent.base
+          @default_type ||= parent.default_type
+          @http_client ||= parent.http_client
+          @resource_templates ||= parent.resource_templates
+        end
       end
+      
+      #
+      # Creates a copy of self with additional params
+      #
+      def [](params = {})
+        self.class.new(:parent => self, :params => params)
+      end      
       
       #
       # Tries to respond to a missing method.  We can do so if
