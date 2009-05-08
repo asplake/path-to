@@ -1,31 +1,30 @@
+== 0.3.0 2009-05-08
+
+* Add http_options to Application, to be passed through to the HTTP client with requests
+* Add an example of path-to/described_routes against Delicious
+
 == 0.2.1 2009-04-18
 
-* Minor enhancements
-  * Use new Addressable API
-  * support app[params]
-  * more tests!
+* Use new Addressable API
+* support app[params]
+* more tests!
 
 == 0.2.0 2009-04-18
 
-* Major enhancement
-  * Support for nested described_routes, friendlier initialisation
+* Support for nested described_routes, friendlier initialisation
 
 == 0.1.0 2009-04-18
 
-* Major enhancement
-  * Support for described_routes
+* Support for described_routes
 
 == 0.0.3 2009-04-18
 
-* Minor enhancement:
-  * Update README with installation and contact info
+* Update README with installation and contact info
 
 == 0.0.2 2009-04-18
 
-* Minor bugfix:
-  * lib/path-to/http_client.rb missing from manifest
+* lib/path-to/http_client.rb missing from manifest
 
 == 0.0.1 2009-04-04
 
-* 1 major enhancement:
-  * Initial release
+* Initial release

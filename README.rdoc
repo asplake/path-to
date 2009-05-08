@@ -1,8 +1,12 @@
 = path-to README
 
+Model web apps easily and access them via nice app-specific Ruby APIs.
+
+Note to reader: You are invited to comment on the roadmap at http://positiveincline.com/?p=213
+
 == Description
 
-path-to allows web applications to be modelled via URI templates and then accessed through an application-specific Ruby API.  It is designed to be extended easily to support discovery mechanisms; support for XRD may be added at some future date.
+path-to allows web applications to be modelled via URI templates and then accessed through an application-specific Ruby API.  It is designed to be extended easily to support discovery mechanisms; included is an implementation based on the resource templates of described_routes.
 
 == Synopsis
 
@@ -16,6 +20,8 @@ Create a client application configured from a server that supports described_rou
 
   app.users["user_id" => "dojo"].articles.recent      #=> http://example.com/users/dojo/articles/recent
   app.users["user_id" => "dojo"].articles.recent.get  #=> "<html>...</html>"
+  
+See examples/delicious.rb for an example based on a partial YAML-based description of the Delicious API held locally.
   
 === Local configuration
 

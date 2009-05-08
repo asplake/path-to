@@ -87,6 +87,9 @@ module PathTo
       # Base URI of the application
       attr_reader :base
       
+      # Hash of options to be included in HTTP method calls
+      attr_reader :http_options
+      
       def initialize(options)
         super(options[:parent], options[:service], options[:params])
 
@@ -94,6 +97,7 @@ module PathTo
         @base.sub(/\/$/, '') if base
         @default_type = options[:default_type] || TemplatedPath
         @http_client = options[:http_client] || HTTPClient
+        @http_options = options[:http_options]
         
         @resource_templates = options[:resource_templates]
         unless @resource_templates
@@ -111,6 +115,7 @@ module PathTo
           @default_type ||= parent.default_type
           @http_client ||= parent.http_client
           @resource_templates ||= parent.resource_templates
+          @http_options ||= parent.http_options
         end
       end
       

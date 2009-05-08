@@ -1,0 +1,18 @@
+---
+- name: posts
+  options: 
+  - GET
+  uri_template: https://api.del.icio.us/v1/posts/get?{-join|&|tag,dt,url}
+  optional_parameters:
+  - tag
+  - dt
+  - url
+  resource_templates: 
+  - name: recent_posts
+    options: 
+    - GET
+    uri_template: https://api.del.icio.us/v1/posts/recent?{-join|&|tag,count}
+    rel: recent
+    optional_parameters:
+    - tag
+    - count

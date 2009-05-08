@@ -45,29 +45,44 @@ module PathTo
     # GET request on this object's URI
     #
     def get(*args)
-      http_client.get(uri, *args)
+      http_client.get(uri, *merge_http_options(args))
     end
     
     #
     # PUT request on this object's URI
     #
     def put(*args)
-      http_client.put(uri, *args)
+      http_client.put(uri, *merge_http_options(args))
     end
     
     #
     # POST request on this object's URI
     #
     def post(*args)
-      http_client.post(uri, *args)
+      http_client.post(uri, *merge_http_options(args))
     end
     
     #
     # DELETE request on this object's URI
     #
     def delete(*args)
-      http_client.delete(uri, *args)
+      http_client.delete(uri, *merge_http_options(args))
     end
+    
+    #
+    # Include application.http_options (if exists) in args, either appending it or reverse-merging with the last element of args if it's a Hash
+    #
+    def merge_http_options(args)
+      if (http_options = application.http_options)
+        if args[-1].kind_of?(Hash)
+          args[-1] = http_options.merge(args[-1])
+        else
+          args << http_options
+        end
+      end
+      args
+    end
+    
     
     def inspect  #:nodoc:
       "#{uri} #<#{self.class.name}:#{"0x%x" % object_id} service=#{service.inspect}, params=#{params.inspect}>"

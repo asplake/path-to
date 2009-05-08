@@ -4,6 +4,8 @@ Manifest.txt
 PostInstall.txt
 README.rdoc
 Rakefile
+examples/delicious.rb
+examples/delicious.yaml
 lib/path-to.rb
 lib/path-to/application.rb
 lib/path-to/described_routes.rb

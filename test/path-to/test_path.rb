@@ -50,5 +50,18 @@ module PathTo
         users.send(method, request_options)
       end
     end
+
+    def test_http_methods_with_app_options
+      request_options = {:b => "b", :c => "c"}
+      app_options = {:a => "a", :b => "WILL BE OVERRIDDEN"}
+      expected_options = {:a => "a", :b => "b", :c => "c"}
+      
+      app_with_options = Application.new(app.templates, app_options)
+      
+      [:get, :put, :post, :delete].each do |method|
+        app_with_options.http_client.expects(method).with("http://example.com/users/", expected_options)
+        app_with_options.users.send(method, request_options)
+      end
+    end
   end
 end

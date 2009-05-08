@@ -35,10 +35,14 @@ module PathTo
     # An HTTParty or similar
     attr_reader :http_client
     
+    # Hash of options to be included in HTTP method calls
+    attr_reader :http_options
+    
     #
     # Initializes an Application.  Parameters:
     #
     # [templates]     Initial value for the templates attribute, defaults to {}
+    # [http_options]  Initial value for the http_options attribute, defaults to nil
     # [default_type]  Initial value for the default_type attribute, defaults to Path
     # [http_client]   An object through which http calls are invoked.  See HTTPClient and Path#http_client.
     #
@@ -61,9 +65,9 @@ module PathTo
     #     end
     #   end
     #
-    def initialize(templates = {}, default_type = Path, http_client = HTTPClient)
+    def initialize(templates = {}, http_options = nil, default_type = Path, http_client = HTTPClient)
       super() # with default args
-      @templates, @default_type, @http_client = templates, default_type, http_client
+      @templates, @http_options, @default_type, @http_client = templates, http_options, default_type, http_client
       yield self if block_given?
     end
     
