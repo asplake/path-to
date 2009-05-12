@@ -1,5 +1,4 @@
-# Adapted from jnunemaker/httparty/examples/delicious.rb to demonstrate path-to's metadata-driven REST client API capability
-# For more information see http://positiveincline.com/?tag=path-to
+# Adapted from jnunemaker/httparty/examples/delicious.rb to demonstrate path-to's metadata-driven client API capability
 
 require 'path-to/described_routes'
 require 'pp'
@@ -38,6 +37,6 @@ delicious = PathTo::DescribedRoutes::Application.new(
                       :username => config['username'],
                       :password => config['password']}})
 
-pp delicious.posts['tag' => 'ruby'].get
-pp delicious.posts['tag' => 'ruby'].recent['count' => '5'].get
+pp delicious.posts('ruby').get
+pp delicious.posts('ruby').recent('count' => '5').get
 delicious.recent_posts.get['posts']['post'].each { |post| puts post['href'] }

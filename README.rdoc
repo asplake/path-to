@@ -18,10 +18,17 @@ Create a client application configured from a server that supports described_rou
 
   app = PathTo::DescribedRoutes::Application.new(:json => Net::HTTP.get(URI.parse("http://example.com/described_routes.json")))
 
-  app.users["user_id" => "dojo"].articles.recent      #=> http://example.com/users/dojo/articles/recent
-  app.users["user_id" => "dojo"].articles.recent.get  #=> "<html>...</html>"
+  app.users["dojo"].articles.recent
+  #=> http://example.com/users/dojo/articles/recent
+  app.users["dojo"].articles.recent.get
+  #=> "<html>...</html>"
+
+  app.users["dojo"].articles.recent["format" => "json"]
+  #=> http://example.com/users/dojo/articles/recent.json
+  app.users["dojo"].articles.recent.get
+  #=> [...]
   
-See examples/delicious.rb for an example based on a partial YAML-based description of the Delicious API held locally.
+See examples/delicious.rb for an example based on a partial YAML-based description of the Delicious API.
   
 === Local configuration
 

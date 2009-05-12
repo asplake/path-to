@@ -87,5 +87,32 @@ module PathTo
         super
       end
     end
+    
+    #
+    # Separates positional params from hash params
+    # TODO: this is initially just for the DescribedRoutes implementation but there will be some refactoring to do
+    #
+    def extract_params(args, params_hash={})#:nodoc:
+      positional_params = []
+      params_hash = params_hash.clone
+      args.each do |arg|
+        if arg.kind_of?(Hash)
+          params_hash.merge!(arg)
+        else
+          positional_params << arg
+        end
+      end
+      [positional_params, params_hash]
+    end
+    
+    #
+    # Updates params_hash with positional parameters
+    # TODO: this is initially just for the DescribedRoutes implementation but there will be some refactoring to do
+    #
+    def complete_params_hash!(params_hash, names, values)#:nodoc:
+      names[0...values.length].each_with_index do |k, i|
+        params_hash[k] = values[i]
+      end
+    end
   end
 end

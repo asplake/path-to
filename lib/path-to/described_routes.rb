@@ -2,10 +2,26 @@ require "path-to"
 require "described_routes/resource_template"
 
 module PathTo
+  #
+  # Application and Path implementations for DescribedRoutes, each resource described by a ResourceTemplate
+  #
   module DescribedRoutes
+    #
+    # Implements PathTo::Path, represents a resource described by a ResourceTemplate
+    #
     class TemplatedPath < PathTo::Path
       attr_reader :resource_template
       
+      #
+      # Initialize a TemplatedPath.  Raises ArgumentError if params doesn't include all mandatory params expected by the resource
+      # template.
+      #
+      # Parameters:
+      #   [parent]   parent object path or application
+      #   [service]  unused - resource_template.name is passed to super() instead.  TODO: refactor
+      #   [params]   hash of params; will be merged with the parent's params and passed when required to the resource template's URI template
+      #   [resource_template] metadata describing the web resource
+      #
       def initialize(parent, service, params, resource_template)
         super(parent, resource_template.name, params)
         @resource_template = resource_template
@@ -20,10 +36,16 @@ module PathTo
           end
       end
       
+      #
+      # Get and cache the uri template from the resource tamplte
+      #
       def uri_template
         @uri_template ||= resource_template.uri_template || (application.base + resource_template.path_template)
       end
       
+      #
+      # Create and cache the URI by filling in the URI template with params 
+      #
       def uri
         @uri ||= begin
           Addressable::Template.new(uri_template).expand(params).to_s
@@ -43,15 +65,38 @@ module PathTo
       end
       
       #
-      # Creates a child instance with new params, potentially finding a nested resource template that takes the additional params
+      # Creates a child instance with new params, potentially finding a nested resource template that takes the additional params.
+      # May take a combination of positional and named parameters, e.g.
       #
-      def [](params = {})
-        keys = self.params.merge(params).keys
-        child_resource_template = resource_template.resource_templates.detect{ |t|
-          t.rel.nil? && (t.params - keys).empty?
-        } || resource_template
-        child_class = child_class_for(self, nil, params, child_resource_template)
-        child(child_class, nil, params, child_resource_template)
+      #   users["dojo", {"format" => "json"}]
+      #
+      # Positional parameters are unsupported however if a new child template is not identified.
+      #
+      def [](*args)
+        positional_params, params_hash = extract_params(args, params)
+        known_keys = params_hash.keys
+        
+        child_resource_template = resource_template.resource_templates.detect do |t|
+          if t.rel.nil?
+            (t.positional_params(resource_template)[positional_params.length..-1] -  t.optional_params - known_keys).empty?
+          end
+        end
+        
+        if child_resource_template
+          # we have a new child resource template; apply any positional params to the hash
+          complete_params_hash!(params_hash, child_resource_template.positional_params(resource_template), positional_params)
+        else
+          # we're just adding optional params, no new template identified
+          unless positional_params.empty?
+            raise ArgumentError.new(
+                  "No matching child template; only named parameters can be used here. " +
+                  "positional_params=#{positional_params.inspect}, params_hash=#{params_hash.inspect}")
+          end
+          child_resource_template = resource_template
+        end
+        
+        child_class = child_class_for(self, nil, params_hash, child_resource_template)
+        child(child_class, nil, params_hash, child_resource_template)
       end      
       
       #
@@ -62,11 +107,16 @@ module PathTo
       #
       # Otherwise we invoke super in the hope of avoiding any hard-to-debug behaviour!
       #
+      # May take a combination of positional and named parameters, e.g.
+      #
+      #   users("dojo", "format" => "json")
+      #
       def method_missing(method, *args)
         child_resource_template = resource_template.resource_templates.detect{|t| t.rel == method.to_s}
         if child_resource_template && (child_class = child_class_for(self, method, params, child_resource_template))
-          params = args.inject(Hash.new){|h, arg| h.merge(arg)}
-          child(child_class, method, params, child_resource_template)
+          positional_params, params_hash = extract_params(args, params)
+          complete_params_hash!(params_hash, child_resource_template.positional_params(resource_template), positional_params)
+          child(child_class, method, params_hash, child_resource_template)
         else
           super
         end
@@ -74,6 +124,9 @@ module PathTo
       
     end
     
+    #
+    # DescribedRoutes implementation of PathTo::Application.
+    #
     class Application < WithParams
       # An Array of DescribedRoutes::Resource objects
       attr_reader :resource_templates
@@ -122,7 +175,7 @@ module PathTo
       #
       # Creates a copy of self with additional params
       #
-      def [](params = {})
+      def [](params)
         self.class.new(:parent => self, :params => params)
       end      
       
@@ -135,10 +188,11 @@ module PathTo
       # Otherwise we invoke super in the hope of avoiding any hard-to-debug behaviour!
       #
       def method_missing(method, *args)
-        resource_template = resource_templates_by_name[method.to_s]
-        if resource_template && (child_class = child_class_for(self, method, params, resource_template))
-          params = args.inject(Hash.new){|h, arg| h.merge(arg)}
-          child(child_class, method, params, resource_template)
+        child_resource_template = resource_templates_by_name[method.to_s]
+        if child_resource_template && (child_class = child_class_for(self, method, params, child_resource_template))
+          positional_params, params_hash = extract_params(args, params)
+          complete_params_hash!(params_hash, child_resource_template.positional_params(nil), positional_params)
+          child(child_class, method, params_hash, child_resource_template)
         else
           super
         end

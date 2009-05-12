@@ -102,13 +102,22 @@ class TestDescribedRoutes < Test::Unit::TestCase
   end
 
   def test_path_optional_params
-    users_json = app.users["format" => "json"]
-    user_json = app.users["user_id" => "dojo"]["format" => "json"]
+    # more complicated than would be ideal, but the app has a different #method_missing d
+    user_articles = app.users["user_id" => "dojo"].articles("json")
     
-    assert_equal("users", users_json.service)
-    assert_equal("user", user_json.service)
-    assert_equal("http://localhost:3000/users.json", users_json.uri)
-    assert_equal("http://localhost:3000/users/dojo.json", user_json.uri)
+    assert_equal("user_articles", user_articles.service)
+    assert_equal({"user_id" => "dojo", "format" => "json"}, user_articles.params)
+  end
+
+  def test_path_collection_positional_params
+    article_json = app.users["dojo"].articles["article-1"]["format" => "json"]
+    assert_equal("user_article", article_json.service)
+    assert_equal({"user_id" => "dojo", "article_id" => "article-1", "format" => "json"}, article_json.params)
+    assert_equal("http://localhost:3000/users/dojo/articles/article-1.json", article_json.uri)
+    
+    assert_raises(ArgumentError) do
+      article_json = app.users["dojo"]["json"]
+    end
   end
 
   def test_app_params
