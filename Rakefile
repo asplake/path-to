@@ -12,8 +12,8 @@ $hoe = Hoe.new('path-to', PathTo::VERSION) do |p|
   p.url = 'http://positiveincline.com/?p=213'
   p.extra_deps         = [
     ['httparty','>= 0.4.2'],
-    ['addressable','>= 2.0.2'],
-    ['described_routes','>= 0.3.6']
+    ['addressable','>= 2.1.0'],
+    ['described_routes','>= 0.4.1']
   ]
   p.extra_dev_deps = [
     ['newgem', ">= #{::Newgem::VERSION}"]
@@ -23,6 +23,13 @@ $hoe = Hoe.new('path-to', PathTo::VERSION) do |p|
   path = (p.rubyforge_name == p.name) ? p.rubyforge_name : "\#{p.rubyforge_name}/\#{p.name}"
   p.remote_rdoc_dir = File.join(path.gsub(/^#{p.rubyforge_name}\/?/,''), 'rdoc')
   p.rsync_args = '-av --delete --ignore-errors'
+end
+
+task :info do
+  puts "version=#{PathTo::VERSION}"
+  [:description, :summary, :changes, :author, :url].each do |attr|
+    puts "#{attr}=#{$hoe.send(attr)}\n"
+  end
 end
 
 require 'newgem/tasks' # load /tasks/*.rake

@@ -1,5 +1,5 @@
 module PathTo
-  VERSION = "0.4.0"
+  VERSION = "0.4.1"
 end
 
 $:.push File.dirname(__FILE__)
