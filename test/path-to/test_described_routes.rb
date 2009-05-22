@@ -1,4 +1,3 @@
-require 'rubygems'
 require 'test/unit'
 require 'path-to/described_routes'
 
@@ -43,7 +42,7 @@ class TestDescribedRoutes < Test::Unit::TestCase
   
   def test_resource_templates_by_name
     assert_equal(RESOURCE_TEMPLATE_NAMES, app.resource_templates_by_name.keys.sort)
-    assert_kind_of(DescribedRoutes::ResourceTemplate, app.resource_templates_by_name["user"])
+    assert_kind_of(ResourceTemplate, app.resource_templates_by_name["user"])
   end
   
   def test_app_child_class_for

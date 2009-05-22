@@ -1,5 +1,5 @@
 require "path-to"
-require "described_routes/resource_template"
+require "described_routes"
 
 module PathTo
   #
@@ -155,11 +155,11 @@ module PathTo
         @resource_templates = options[:resource_templates]
         unless @resource_templates
           if (json = options[:json])
-            @resource_templates = ::DescribedRoutes::ResourceTemplate.parse_json(json)
+            @resource_templates = ResourceTemplate::ResourceTemplates.parse_json(json)
           elsif (yaml = options[:yaml])
-            @resource_templates = ::DescribedRoutes::ResourceTemplate.parse_yaml(yaml)
+            @resource_templates = ResourceTemplate::ResourceTemplates.parse_yaml(yaml)
           elsif (xml = options[:xml])
-            @resource_templates = ::DescribedRoutes::ResourceTemplate.parse_xml(xml)
+            @resource_templates = ResourceTemplate::ResourceTemplates.parse_xml(xml)
           end
         end
         
@@ -217,7 +217,7 @@ module PathTo
       # Returns a hash of all ResourceTemplates (the tree flattened) keyed by name
       #
       def resource_templates_by_name
-        @resource_templates_by_name ||= ::DescribedRoutes::ResourceTemplate.all_by_name(resource_templates)
+        @resource_templates_by_name ||= resource_templates.all_by_name
       end
 
       #

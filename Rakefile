@@ -13,7 +13,7 @@ $hoe = Hoe.new('path-to', PathTo::VERSION) do |p|
   p.extra_deps         = [
     ['httparty','>= 0.4.2'],
     ['addressable','>= 2.1.0'],
-    ['described_routes','>= 0.4.1']
+    ['described_routes','>= 0.5.0']
   ]
   p.extra_dev_deps = [
     ['newgem', ">= #{::Newgem::VERSION}"]
