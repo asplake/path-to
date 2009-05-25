@@ -144,9 +144,9 @@ module PathTo
         @resource_templates = options[:resource_templates]
         unless @resource_templates
           if (json = options[:json])
-            @resource_templates = ResourceTemplate::ResourceTemplates.parse_json(json)
+            @resource_templates = ResourceTemplate::ResourceTemplates.new(JSON.parse(json))
           elsif (yaml = options[:yaml])
-            @resource_templates = ResourceTemplate::ResourceTemplates.parse_yaml(yaml)
+            @resource_templates = ResourceTemplate::ResourceTemplates.new(YAML.load(yaml))
           elsif (xml = options[:xml])
             @resource_templates = ResourceTemplate::ResourceTemplates.parse_xml(xml)
           end
