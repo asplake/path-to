@@ -37,23 +37,14 @@ module PathTo
       end
       
       #
-      # Get and cache the uri template from the resource tamplte
-      #
-      def uri_template
-        @uri_template ||= resource_template.uri_template || (application.base + resource_template.path_template)
-      end
-      
-      #
-      # Create and cache the URI by filling in the URI template with params 
+      # Creates and caches the URI by filling in the resource template's URI template with params 
       #
       def uri
-        @uri ||= begin
-          Addressable::Template.new(uri_template).expand(params).to_s
-        end
+        @uri ||= resource_template.uri_for(params, application.base)
       end
       
       #
-      # Finds (once) the application in the parent hierarchy.
+      # Finds and caches the application in the parent hierarchy.
       #
       def application
         @application ||= parent.application if parent
@@ -76,10 +67,8 @@ module PathTo
         positional_params, params_hash = extract_params(args, params)
         known_keys = params_hash.keys
         
-        child_resource_template = resource_template.resource_templates.detect do |t|
-          if t.rel.nil?
-            (t.positional_params(resource_template)[positional_params.length..-1] -  t.optional_params - known_keys).empty?
-          end
+        child_resource_template = resource_template.find_by_rel(nil).detect do |t|
+          (t.positional_params(resource_template)[positional_params.length..-1] -  t.optional_params - known_keys).empty?
         end
         
         if child_resource_template
@@ -112,7 +101,7 @@ module PathTo
       #   users("dojo", "format" => "json")
       #
       def method_missing(method, *args)
-        child_resource_template = resource_template.resource_templates.detect{|t| t.rel == method.to_s}
+        child_resource_template = resource_template.find_by_rel(method.to_s).first
         if child_resource_template && (child_class = child_class_for(self, method, params, child_resource_template))
           positional_params, params_hash = extract_params(args, params)
           complete_params_hash!(params_hash, child_resource_template.positional_params(resource_template), positional_params)
