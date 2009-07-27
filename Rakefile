@@ -1,28 +1,33 @@
-%w[rubygems rake rake/clean fileutils newgem rubigen].each { |f| require f }
+%w[rubygems rake rake/clean fileutils newgem rubigen hoe].each { |f| require f }
 $:.push File.dirname(__FILE__) + '/lib'
 require 'path-to'
 
 # Generate all the Rake tasks
 # Run 'rake -T' to see list of generated tasks (from gem root directory)
-$hoe = Hoe.new('path-to', PathTo::VERSION) do |p|
-  p.developer('Mike Burrows (asplake)', 'mjb@asplake.co.uk')
-  p.changes              = p.paragraphs_of("History.txt", 0..1).join("\n\n")
-  p.post_install_message = 'PostInstall.txt' # TODO remove if post-install message not required
-  p.rubyforge_name       = p.name
-  p.url = 'http://positiveincline.com/?p=213'
-  p.extra_deps         = [
+$hoe = Hoe.spec 'path-to' do
+  developer('Mike Burrows', 'mjb@asplake.co.uk')
+  self.version = PathTo::VERSION
+  self.readme_file          = "README.rdoc"
+  self.summary = self.description              = paragraphs_of(self.readme_file, 1..1).join("\n\n")
+  self.changes              = paragraphs_of("History.txt", 0..1).join("\n\n")
+  self.rubyforge_name       = 'path-to'
+  self.url = 'http://github.com/asplake/path-to/tree'
+  self.extra_deps         = [
+  ]
+  self.extra_deps         = [
     ['httparty','>= 0.4.2'],
     ['addressable','>= 2.1.0'],
-    ['described_routes','>= 0.5.0']
+    ['described_routes','>= 0.6.0'],
+    ['link_header','>= 0.0.4']
   ]
-  p.extra_dev_deps = [
+  self.extra_dev_deps = [
     ['newgem', ">= #{::Newgem::VERSION}"]
   ]
   
-  p.clean_globs |= %w[**/.DS_Store tmp *.log]
-  path = (p.rubyforge_name == p.name) ? p.rubyforge_name : "\#{p.rubyforge_name}/\#{p.name}"
-  p.remote_rdoc_dir = File.join(path.gsub(/^#{p.rubyforge_name}\/?/,''), 'rdoc')
-  p.rsync_args = '-av --delete --ignore-errors'
+  self.clean_globs |= %w[**/.DS_Store tmp *.log]
+  path = (rubyforge_name == name) ? rubyforge_name : "\#{rubyforge_name}/\#{name}"
+  self.remote_rdoc_dir = File.join(path.gsub(/^#{rubyforge_name}\/?/,''), 'rdoc')
+  self.rsync_args = '-av --delete --ignore-errors'
 end
 
 task :info do

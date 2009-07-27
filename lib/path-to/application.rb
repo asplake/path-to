@@ -1,6 +1,7 @@
 require "path-to/path"
 require "path-to/http_client"
 require "addressable/template"
+require "net/http"
 
 module PathTo
   #
@@ -115,7 +116,6 @@ module PathTo
     # TODO Consider taking an instance as the first parameter, as #child_class_for does
     #
     def uri_for(method, params = {})
-      # TODO it's a 1-line fix to Addressable to permit symbols (etc) as keys
       if (t = uri_template_for(method, params))
         string_keyed_params = params.keys.inject({}){|hash, key| hash[key.to_s] = params[key]; hash}
         Addressable::Template.new(t).expand(string_keyed_params).to_s

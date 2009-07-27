@@ -1,11 +1,19 @@
 require "path-to"
 require "described_routes"
+require "link_header"
 
 module PathTo
   #
   # Application and Path implementations for DescribedRoutes, each resource described by a ResourceTemplate
   #
   module DescribedRoutes
+    #
+    # Raised in the event of discovery protocol errors, e.g. responses other than 200 OK or missing headers.
+    # Low-level exceptions are NOT swallowed.
+    #
+    class ProtocolError < Exception
+    end
+    
     #
     # Implements PathTo::Path, represents a resource described by a ResourceTemplate
     #
@@ -131,6 +139,53 @@ module PathTo
       
       # Hash of options to be included in HTTP method calls
       attr_reader :http_options
+      
+      def self.discover(url, options={})
+        http_options = options[:http_options] || nil
+        default_type = options[:default_type] || Path
+        http_client  = options[:http_client]  || HTTPClient
+        
+        metadata_link = self.discover_metadata_link(url, http_client)
+        unless metadata_link
+          raise ProtocolError.new("no metadata link found")
+        end
+
+        json = http_client.get(metadata_link.href, :format => :text, :headers => {"Accept" => "application/json"})
+        unless json
+          raise ProtocolError.new("no json found")
+        end
+
+        self.new(options.merge(:json => json))
+      end
+
+      def self.discover_metadata_link(url, http_client)
+        response = http_client.head(url, {"Accept" => "application/json"})
+        unless response.kind_of?(Net::HTTPOK)
+          raise ProtocolError.new("got response #{response.inspect} from #{url}")
+        end
+        link_header = LinkHeader.parse(response["Link"])
+
+        app_templates_link = link_header.find_link(["rel", "describedby"], ["meta", "ResourceTemplates"])
+        unless app_templates_link
+          resource_template_link = link_header.find_link(["rel", "describedby"], ["meta", "ResourceTemplate"])
+          if resource_template_link
+            response = http_client.head(resource_template_link.href, {"Accept" => "application/json"})
+            unless response.kind_of?(Net::HTTPOK)
+              raise ProtocolError.new("got response #{response.inspect} from #{url}")
+            end
+            link_header = LinkHeader.parse(response["Link"])
+            app_templates_link = link_header.find_link(["rel", "index"], ["meta", "ResourceTemplates"])
+            unless app_templates_link
+              raise ProtocolError.new("(2) couldn't find link with rel=\"index\" and meta=\"ResourceTemplates\" at #{resource_template_link.href}")
+            end
+          else
+            unless app_templates_link
+              raise ProtocolError.new("(1) couldn't find link with rel=\"described_by\" and meta=\"ResourceTemplates\" or meta=\"ResourceTemplate\" at #{url}")
+            end
+          end
+        end
+        app_templates_link
+      end
       
       def initialize(options)
         super(options[:parent], options[:service], options[:params])

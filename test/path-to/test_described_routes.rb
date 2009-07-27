@@ -127,4 +127,22 @@ class TestDescribedRoutes < Test::Unit::TestCase
     assert_equal(app, app_json.parent)
     assert_equal("http://localhost:3000/users.json", users_json.uri)
   end
+  
+  def test_discover_with_empty_uri
+    assert_raise(URI::InvalidURIError) do
+      PathTo::DescribedRoutes::Application.discover("")
+    end
+  end
+
+  def test_discover_with_invalid_uri
+    assert_raise(URI::InvalidURIError) do
+      PathTo::DescribedRoutes::Application.discover("foo bar")
+    end
+  end
+
+  def test_discover_with_nonexistent_uri
+    assert_raise(PathTo::DescribedRoutes::ProtocolError) do
+      PathTo::DescribedRoutes::Application.discover("http://localhost/NONEXISTENT")
+    end
+  end
 end

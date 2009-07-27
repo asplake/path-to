@@ -1,45 +1,48 @@
 = path-to README
 
-Model web apps easily and access them via nice app-specific Ruby APIs.
-
-Note to reader: You are invited to comment on the roadmap at http://positiveincline.com/?p=213
-
-== Description
-
-path-to allows web applications to be modelled via URI templates and then accessed through an application-specific Ruby API.  It is designed to be extended easily to support discovery mechanisms; included is an implementation based on the resource templates of described_routes.
+Model web apps easily and access them via nice app-specific Ruby APIs on the client side.  For suitably-configured servers (e.g. those using described_routes), path-to applications can bootstrap themselves from the address of any resource in the target application.
 
 == Synopsis
 
 === Automatic configuration with described_routes
 
-Create a client application configured from a server that supports described_routes:
+Create a client application for a web app that supports the described_routes discovery protocol:
 
   require 'path-to/described_routes'
+  app = PathTo::DescribedRoutes::Application.discover('http://example.com')
 
-  app = PathTo::DescribedRoutes::Application.new(:json => Net::HTTP.get(URI.parse("http://example.com/described_routes.json")))
+Or create one from a <code>ResourceTemplate</code> description in JSON or YAML found at some known place, preferable on the server.  This could be generated and served by the Rails controller provided by <code>described_routes</code> or perhaps hand-crafted and configured statically:
 
-  app.users["dojo"].articles.recent
+  require 'path-to/described_routes'
+  app = PathTo::DescribedRoutes::Application.new(:json => Net::HTTP.get(URI.parse('http://example.com/described_routes.json')))
+
+The <code>app</code> object then automatically supports an API that reflects the structure of the web application, for example:
+
+  app.users['dojo'].articles.recent
   #=> http://example.com/users/dojo/articles/recent
-  app.users["dojo"].articles.recent.get
-  #=> "<html>...</html>"
+  app.users['dojo'].articles.recent.get
+  #=> '<html>...</html>'
 
-  app.users["dojo"].articles.recent["format" => "json"]
+  app.users['dojo'].articles.recent['format' => 'json']
   #=> http://example.com/users/dojo/articles/recent.json
-  app.users["dojo"].articles.recent.get
+  app.users['dojo'].articles.recent.get
   #=> [...]
-  
-See examples/delicious.rb for an example based on a partial YAML-based description of the Delicious API.
-  
-=== Local configuration
 
-   require "path-to"
+The API objects include the <code>#get</code>, <code>#put</code>, <code>#post</code> and <code>#delete</code> of HTTParty (or other HTTP client provided at initialization). Alternatively you can use their <code>#uri</code> or <code>#path</code> methods with an un-integrated HTTP client:
+
+  your_favourite_http_client.get app.users['dojo'].articles.recent.uri
+  #=> '<html>...</html>'
+  
+=== Local configuration - using path-to without described_routes
+
+   require 'path-to'
 
    class Users    < PathTo::Path ; end
    class Articles < PathTo::Path ; end
 
    app = Application.new(
-       :users    => "http://example.com/users/{user}",
-       :articles => "http://example.com/users/{user}/articles/{slug}") do |app|
+       :users    => 'http://example.com/users/{user}',
+       :articles => 'http://example.com/users/{user}/articles/{slug}') do |app|
      def app.child_class_for(instance, method, params)
        {
          :users    => Users,
@@ -56,19 +59,19 @@ app.articles cause objects of the appropriate class to be generated.  These in t
 params, like this:
 
    app.users                                                   #=> http://example.com/users/ <Users>
-   app.users(:user => "dojo")                                  #=> http://example.com/users/dojo <Users>
-   app.users[:user => "dojo"]                                  #=> http://example.com/users/dojo <Users>
-   app.articles(:user => "dojo", :slug => "my-article")        #=> http://example.com/users/dojo/articles/my-article <Articles>
-   app.users[:user => "dojo"].articles[:slug => "my-article"]  #=> http://example.com/users/dojo/articles/my-article <Articles>
+   app.users(:user => 'dojo')                                  #=> http://example.com/users/dojo <Users>
+   app.users[:user => 'dojo']                                  #=> http://example.com/users/dojo <Users>
+   app.articles(:user => 'dojo', :slug => 'my-article')        #=> http://example.com/users/dojo/articles/my-article <Articles>
+   app.users[:user => 'dojo'].articles[:slug => 'my-article']  #=> http://example.com/users/dojo/articles/my-article <Articles>
 
 With a little more work (overriding Users#[] and Articles#[] - as described in the documentation for the Path class), the last example
 becomes simply:
 
-  app.users["dojo"].articles["my-article"]                     #=> http://example.com/users/dojo/articles/my-article <Articles>
+  app.users['dojo'].articles['my-article']                     #=> http://example.com/users/dojo/articles/my-article <Articles>
 
 HTTP support comes courtesy of HTTParty (the Path class includes it).  To GET an article in the above example, just invoke the get method on the path object:
 
-  app.users["dojo"].articles["my-article"].get                 #=> "<html>...</html>"
+  app.users['dojo'].articles['my-article'].get                 #=> '<html>...</html>'
 
 == Installation
 
